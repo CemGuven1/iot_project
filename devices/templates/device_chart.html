@@ -1,0 +1,291 @@
+{% extends "master.html" %}
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div>
+    <canvas id="AccelChart"></canvas>
+</div>
+
+<style>
+    #AccelChart {
+        width: 100%;  /* Adjust the width based on your layout */
+        height: 300px;  /* Set a fixed height to make the chart shorter */
+    }
+</style>
+
+<div>
+    <canvas id="GyroChart"></canvas>
+</div>
+
+<style>
+    #GyroChart {
+        width: 100%;  /* Adjust the width based on your layout */
+        height: 300px;  /* Set a fixed height to make the chart shorter */
+    }
+</style>
+
+
+<div>
+    <canvas id="TempChart"></canvas>
+</div>
+
+<style>
+    #TempChart {
+        width: 100%;  /* Adjust the width based on your layout */
+        height: 300px;  /* Set a fixed height to make the chart shorter */
+    }
+</style>
+
+
+<div>
+    <canvas id="BatteryChart"></canvas>
+</div>
+
+<style>
+    #BatteryChart {
+        width: 100%;  /* Adjust the width based on your layout */
+        height: 300px;  /* Set a fixed height to make the chart shorter */
+    }
+</style>
+
+
+
+<script>
+
+    //time formatting
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp); // Convert timestamp to Date object
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+      
+        // Return formatted as MM/DD HH:MM:SS
+        return `${month}/${day} ${hours}:${minutes}:${seconds}`;
+      }
+      
+
+    // accel chart setup
+    const accel_ctx = document.getElementById('AccelChart').getContext('2d');
+    let AccelChart = new Chart(accel_ctx, {
+        type: 'line',
+        data: {
+            labels: [], // This will be filled with timestamps
+            datasets: [
+                {
+                    label: 'Acceleration X',
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: []  // This will be filled with acceleration_x values
+                },
+                {
+                    label: 'Acceleration Y',
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    data: []  // This will be filled with acceleration_y values
+                },
+                {
+                    label: 'Acceleration Z',
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    data: []  // This will be filled with acceleration_z values
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // This allows the chart to respect your custom height
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Device Acceleration Over Time'
+                }
+            }
+        }
+    });
+
+
+    // gyro chart setup
+    const gyro_ctx = document.getElementById('GyroChart').getContext('2d');
+    let GyroChart = new Chart(gyro_ctx, {
+        type: 'line',
+        data: {
+            labels: [], // This will be filled with timestamps
+            datasets: [
+                {
+                    label: 'Gyro Position X',
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: []  // This will be filled with acceleration_x values
+                },
+                {
+                    label: 'Gyro Position Y',
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    data: []  // This will be filled with acceleration_y values
+                },
+                {
+                    label: 'Gyro Position Z',
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    data: []  // This will be filled with acceleration_z values
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // This allows the chart to respect your custom height
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Device Gyro Positions Over Time'
+                }
+            }
+        }
+    });
+
+
+    // temp chart setup
+    const temp_ctx = document.getElementById('TempChart').getContext('2d');
+    let TempChart = new Chart(temp_ctx, {
+        type: 'line',
+        data: {
+            labels: [], // This will be filled with timestamps
+            datasets: [
+                {
+                    label: 'Temperature',
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: []  // This will be filled with acceleration_x values
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // This allows the chart to respect your custom height
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Device Temperature Over Time'
+                }
+            }
+        }
+    });
+
+
+    // battery chart setup
+    const battery_ctx = document.getElementById('BatteryChart').getContext('2d');
+    let BatteryChart = new Chart(battery_ctx, {
+        type: 'line',
+        data: {
+            labels: [], // This will be filled with timestamps
+            datasets: [
+                {
+                    label: 'Battery',
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    data: []  // This will be filled with acceleration_x values
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // This allows the chart to respect your custom height
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Device Temperature Over Time'
+                }
+            }
+        }
+    });
+
+
+
+    // Function to fetch and update the chart with the latest device data
+    function fetchLatestData() {
+        const deviceId = "{{ device.device_id }}";
+        fetch(`/app/device/${deviceId}/latest-data/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                const allData = data.all_data;
+
+                // Clear previous data
+                AccelChart.data.labels = [];
+                AccelChart.data.datasets.forEach(dataset => { dataset.data = []; });
+                GyroChart.data.labels = [];
+                GyroChart.data.datasets.forEach(dataset => { dataset.data = []; });
+                TempChart.data.labels = [];
+                TempChart.data.datasets.forEach(dataset => { dataset.data = []; });
+                BatteryChart.data.labels = [];
+                BatteryChart.data.datasets.forEach(dataset => { dataset.data = []; });
+
+                // Reverse the order of the fetched data so the oldest comes first
+                allData.reverse().forEach(entry => {
+                    // Add timestamps to labels
+                    AccelChart.data.labels.push(formatTimestamp(entry.timestamp));
+
+                    // Add data to datasets
+                    AccelChart.data.datasets[0].data.push(entry.acceleration_x);
+                    AccelChart.data.datasets[1].data.push(entry.acceleration_y);
+                    AccelChart.data.datasets[2].data.push(entry.acceleration_z);
+
+
+                    // Add timestamps to labels
+                    GyroChart.data.labels.push(formatTimestamp(entry.timestamp));
+
+                    // Add data to datasets
+                    GyroChart.data.datasets[0].data.push(entry.gyro_x);
+                    GyroChart.data.datasets[1].data.push(entry.gyro_y);
+                    GyroChart.data.datasets[2].data.push(entry.gyro_z);
+
+                    // Add timestamps to labels
+                    TempChart.data.labels.push(formatTimestamp(entry.timestamp));
+
+                    // Add data to datasets
+                    TempChart.data.datasets[0].data.push(entry.temperature);
+
+                    // Add timestamps to labels
+                    BatteryChart.data.labels.push(formatTimestamp(entry.timestamp));
+
+                    // Add data to datasets
+                    BatteryChart.data.datasets[0].data.push(entry.battery);
+                });
+
+                // Update chart
+                AccelChart.update();
+                GyroChart.update();
+                TempChart.update();
+                BatteryChart.update();
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(error => console.error('Error fetching latest data:', error));
+    }
+
+    // Set an interval to automatically fetch data every 5 seconds (5000 ms)
+    setInterval(fetchLatestData, 5000);
+
+    // Fetch the data immediately when the page loads
+    document.addEventListener('DOMContentLoaded', fetchLatestData);
+</script>
+
+
+
+{% endblock %}

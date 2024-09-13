@@ -1,0 +1,103 @@
+{% extends "master.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Device: {{ device.name }} (ID: {{ device.device_id }})</h2>
+    <form method="get" class="form-inline mb-3">
+        <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+        <input type="date" name="end_date" class="form-control ml-2" value="{{ end_date }}">
+        <button type="submit" class="btn btn-primary ml-2">Filter</button>
+    </form>
+    {% if page_obj %}
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Acceleration (x, y, z)</th>
+                    <th>Gyro (x, y, z)</th>
+                    <th>Temperature (°C)</th>
+                    <th>Battery (%)</th>
+                </tr>
+            </thead>
+            <tbody id="main-tbody">
+                {% for entry in page_obj %}
+                    <tr>
+                        <td>{{ entry.timestamp }}</td>
+                        <td>({{ entry.acceleration_x }}, {{ entry.acceleration_y }}, {{ entry.acceleration_z }})</td>
+                        <td>({{ entry.gyro_x }}, {{ entry.gyro_y }}, {{ entry.gyro_z }})</td>
+                        <td>{{ entry.temperature }}</td>
+                        <td>{{ entry.battery }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&start_date={{ start_date }}&end_date={{ end_date }}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}">Previous</a>
+                    </li>
+                {% endif %}
+                <li class="page-item disabled">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&start_date={{ start_date }}&end_date={{ end_date }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&start_date={{ start_date }}&end_date={{ end_date }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <p>No data available for this device.</p>
+    {% endif %}
+</div>
+
+<script>
+    // Function to fetch and update the latest device data
+    function fetchLatestData() {
+        const deviceId = "{{ device.device_id }}";
+        fetch(`/app/device/${deviceId}/latest-data/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error) {
+                const allData = data.all_data;
+                // Iterate through the fetched data and append to device-data div
+                let tableContent = ''; // Accumulate the rows here
+
+                allData.forEach(entry => {
+                    // Update the HTML elements with the latest data
+                    tableContent +=`
+                         <tr>
+                            <td>${entry.timestamp}</td>
+                            <td>(${entry.acceleration_x}, ${entry.acceleration_y}, ${entry.acceleration_z})</td>
+                            <td>(${entry.gyro_x}, ${entry.gyro_y}, ${entry.gyro_z})</td>
+                            <td>${entry.temperature} °C</td>
+                            <td>${entry.battery} %</td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('main-tbody').innerHTML = tableContent
+            } else {
+                console.error(data.error);
+            }
+        })
+        .catch(error => console.error('Error fetching latest data:', error));
+    }
+
+    // Set an interval to automatically fetch data every 5 seconds (5000 ms)
+    setInterval(fetchLatestData, 5000);
+
+    // Fetch the data immediately when the page loads
+    document.addEventListener('DOMContentLoaded', fetchLatestData);
+</script>
+
+{% endblock %}
