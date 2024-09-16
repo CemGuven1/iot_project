@@ -1,0 +1,83 @@
+.button {
+    background-color: #007bff; /* Primary color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 20px; /* Added margin for spacing between buttons */
+}
+
+.button:hover {
+    background-color: linear-gradient(45deg, #0056b3, #004080); /* Darker gradient for hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
+.button:focus {
+    outline: none; /* Remove the default focus outline */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* Add custom focus outline */
+}
+
+
+#AccelChart {
+    width: 100%;  /* Adjust the width based on your layout */
+    height: 300px;  /* Set a fixed height to make the chart shorter */
+}
+
+#GyroChart {
+    width: 100%;  /* Adjust the width based on your layout */
+    height: 300px;  /* Set a fixed height to make the chart shorter */
+}
+
+#TempChart {
+    width: 100%;  /* Adjust the width based on your layout */
+    height: 300px;  /* Set a fixed height to make the chart shorter */
+}
+
+#BatteryChart {
+    width: 100%;  /* Adjust the width based on your layout */
+    height: 300px;  /* Set a fixed height to make the chart shorter */
+}
+
+.button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    border: none;
+    outline: none;
+    transition: 0.4s;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+
+.accordion.active, .accordion:hover {
+    background-color: #ccc;
+}
+
+.panel {
+    padding: 0 10px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+.panel label {
+    font-size: 14px;
+}
+
+

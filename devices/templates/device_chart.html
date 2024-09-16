@@ -3,220 +3,74 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div>
+
+<!-- Include Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+<!-- Buttons with Icons -->
+<div class="button-container">
+    <button id="toggleAccelChart" class="button">
+        <i class="fas fa-chart-line"></i> Hide Acceleration Chart
+    </button>
+
+    <button id="toggleGyroChart" class="button">
+        <i class="fas fa-tachometer-alt"></i> Hide Gyro Chart
+    </button>
+
+    <button id="toggleTempChart" class="button">
+        <i class="fas fa-thermometer-half"></i> Hide Temperature Chart
+    </button>
+
+    <button id="toggleBatteryChart" class="button">
+        <i class="fas fa-battery-half"></i> Hide Battery Chart
+    </button>
+</div>
+
+
+<div class="accordion-container">
+    <button class="accordion">Toggle Chart Options</button>
+    <div class="panel">
+        <label><input type="checkbox" id="toggle-accel-x" checked> Acceleration X</label><br>
+        <label><input type="checkbox" id="toggle-accel-y" checked> Acceleration Y</label><br>
+        <label><input type="checkbox" id="toggle-accel-z" checked> Acceleration Z</label><br>
+        <label><input type="checkbox" id="toggle-gyro-x" checked> Gyro X</label><br>
+        <label><input type="checkbox" id="toggle-gyro-y" checked> Gyro Y</label><br>
+        <label><input type="checkbox" id="toggle-gyro-z" checked> Gyro Z</label><br>
+        <label><input type="checkbox" id="toggle-temp" checked> Temperature</label><br>
+        <label><input type="checkbox" id="toggle-battery" checked> Battery</label><br>
+    </div>
+</div>
+
+
+
+<!-- Chart Containers -->
+<div id="accelChartContainer">
     <canvas id="AccelChart"></canvas>
 </div>
 
-<style>
-    #AccelChart {
-        width: 100%;  /* Adjust the width based on your layout */
-        height: 300px;  /* Set a fixed height to make the chart shorter */
-    }
-</style>
 
-<div>
+<div id="gyroChartContainer">
     <canvas id="GyroChart"></canvas>
 </div>
 
-<style>
-    #GyroChart {
-        width: 100%;  /* Adjust the width based on your layout */
-        height: 300px;  /* Set a fixed height to make the chart shorter */
-    }
-</style>
 
-
-<div>
+<div id="tempChartContainer">
     <canvas id="TempChart"></canvas>
 </div>
 
-<style>
-    #TempChart {
-        width: 100%;  /* Adjust the width based on your layout */
-        height: 300px;  /* Set a fixed height to make the chart shorter */
-    }
-</style>
 
-
-<div>
+<div id="batteryChartContainer">
     <canvas id="BatteryChart"></canvas>
 </div>
-
-<style>
-    #BatteryChart {
-        width: 100%;  /* Adjust the width based on your layout */
-        height: 300px;  /* Set a fixed height to make the chart shorter */
-    }
-</style>
 
 
 
 <script>
 
-    //time formatting
-    function formatTimestamp(timestamp) {
-        const date = new Date(timestamp); // Convert timestamp to Date object
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
-      
-        // Return formatted as MM/DD HH:MM:SS
-        return `${month}/${day} ${hours}:${minutes}:${seconds}`;
-      }
-      
-
-    // accel chart setup
-    const accel_ctx = document.getElementById('AccelChart').getContext('2d');
-    let AccelChart = new Chart(accel_ctx, {
-        type: 'line',
-        data: {
-            labels: [], // This will be filled with timestamps
-            datasets: [
-                {
-                    label: 'Acceleration X',
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    data: []  // This will be filled with acceleration_x values
-                },
-                {
-                    label: 'Acceleration Y',
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    data: []  // This will be filled with acceleration_y values
-                },
-                {
-                    label: 'Acceleration Z',
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    data: []  // This will be filled with acceleration_z values
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // This allows the chart to respect your custom height
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Device Acceleration Over Time'
-                }
-            }
-        }
-    });
-
-
-    // gyro chart setup
-    const gyro_ctx = document.getElementById('GyroChart').getContext('2d');
-    let GyroChart = new Chart(gyro_ctx, {
-        type: 'line',
-        data: {
-            labels: [], // This will be filled with timestamps
-            datasets: [
-                {
-                    label: 'Gyro Position X',
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    data: []  // This will be filled with acceleration_x values
-                },
-                {
-                    label: 'Gyro Position Y',
-                    borderColor: 'rgb(54, 162, 235)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    data: []  // This will be filled with acceleration_y values
-                },
-                {
-                    label: 'Gyro Position Z',
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    data: []  // This will be filled with acceleration_z values
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // This allows the chart to respect your custom height
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Device Gyro Positions Over Time'
-                }
-            }
-        }
-    });
-
-
-    // temp chart setup
-    const temp_ctx = document.getElementById('TempChart').getContext('2d');
-    let TempChart = new Chart(temp_ctx, {
-        type: 'line',
-        data: {
-            labels: [], // This will be filled with timestamps
-            datasets: [
-                {
-                    label: 'Temperature',
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    data: []  // This will be filled with acceleration_x values
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // This allows the chart to respect your custom height
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Device Temperature Over Time'
-                }
-            }
-        }
-    });
-
-
-    // battery chart setup
-    const battery_ctx = document.getElementById('BatteryChart').getContext('2d');
-    let BatteryChart = new Chart(battery_ctx, {
-        type: 'line',
-        data: {
-            labels: [], // This will be filled with timestamps
-            datasets: [
-                {
-                    label: 'Battery',
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    data: []  // This will be filled with acceleration_x values
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // This allows the chart to respect your custom height
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Device Temperature Over Time'
-                }
-            }
-        }
-    });
-
-
-    // Initialize variables to track the last timestamp drawn on each chart 
+// Initialize variables to track the last timestamp drawn on each chart 
 let lastUpdateTimestamp = null;
+const maxDataPoints = 20;  // Maximum number of data points to display
 
 // Function to fetch and update the chart with the latest device data
 function fetchLatestData() {
@@ -259,6 +113,12 @@ function fetchLatestData() {
                     BatteryChart.data.datasets[0].data.push(entry.battery);
                 });
 
+                // Limit data points to the last 20
+                limitChartData(AccelChart);
+                limitChartData(GyroChart);
+                limitChartData(TempChart);
+                limitChartData(BatteryChart);
+
                 // Update charts
                 AccelChart.update();
                 GyroChart.update();
@@ -278,6 +138,7 @@ function fetchLatestData() {
     .catch(error => console.error('Error fetching latest data:', error));
 }
 
+
 // Set an interval to automatically fetch data every 5 seconds (5000 ms)
 setInterval(fetchLatestData, 5000);
 
@@ -285,5 +146,6 @@ setInterval(fetchLatestData, 5000);
 document.addEventListener('DOMContentLoaded', fetchLatestData);
 
 </script>
+
 
 {% endblock %}
