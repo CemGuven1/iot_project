@@ -215,28 +215,30 @@
     });
 
 
+    // Initialize variables to track the last timestamp drawn on each chart 
+let lastUpdateTimestamp = null;
 
-    // Function to fetch and update the chart with the latest device data
-    function fetchLatestData() {
-        const deviceId = "{{ device.device_id }}";
-        fetch(`/app/device/${deviceId}/latest-data/`)
-        .then(response => response.json())
-        .then(data => {
-            if (!data.error) {
-                const allData = data.all_data;
+// Function to fetch and update the chart with the latest device data
+function fetchLatestData() {
+    console.log("Last update timestamp:", lastUpdateTimestamp);
+    
+    const deviceId = "{{ device.device_id }}";
+    fetch(`/app/device/${deviceId}/latest-data/`)
+    .then(response => response.json())
+    .then(data => {
+        if (!data.error) {
+            const allData = data.all_data;
 
-                // Clear previous data
-                AccelChart.data.labels = [];
-                AccelChart.data.datasets.forEach(dataset => { dataset.data = []; });
-                GyroChart.data.labels = [];
-                GyroChart.data.datasets.forEach(dataset => { dataset.data = []; });
-                TempChart.data.labels = [];
-                TempChart.data.datasets.forEach(dataset => { dataset.data = []; });
-                BatteryChart.data.labels = [];
-                BatteryChart.data.datasets.forEach(dataset => { dataset.data = []; });
+            // Filter data to include only entries with timestamps greater than the last drawn one
+            const newData = allData.filter(entry => {
+                const entryTimestamp = new Date(entry.timestamp);
+                return (lastUpdateTimestamp == null || entryTimestamp > lastUpdateTimestamp);
+            });
 
+            // Check if there's any new data
+            if (newData.length > 0) {
                 // Reverse the order of the fetched data so the oldest comes first
-                allData.reverse().forEach(entry => {
+                newData.reverse().forEach(entry => {
                     // Add timestamps to labels
                     AccelChart.data.labels.push(formatTimestamp(entry.timestamp));
 
@@ -245,47 +247,43 @@
                     AccelChart.data.datasets[1].data.push(entry.acceleration_y);
                     AccelChart.data.datasets[2].data.push(entry.acceleration_z);
 
-
-                    // Add timestamps to labels
                     GyroChart.data.labels.push(formatTimestamp(entry.timestamp));
-
-                    // Add data to datasets
                     GyroChart.data.datasets[0].data.push(entry.gyro_x);
                     GyroChart.data.datasets[1].data.push(entry.gyro_y);
                     GyroChart.data.datasets[2].data.push(entry.gyro_z);
 
-                    // Add timestamps to labels
                     TempChart.data.labels.push(formatTimestamp(entry.timestamp));
-
-                    // Add data to datasets
                     TempChart.data.datasets[0].data.push(entry.temperature);
 
-                    // Add timestamps to labels
                     BatteryChart.data.labels.push(formatTimestamp(entry.timestamp));
-
-                    // Add data to datasets
                     BatteryChart.data.datasets[0].data.push(entry.battery);
                 });
 
-                // Update chart
+                // Update charts
                 AccelChart.update();
                 GyroChart.update();
                 TempChart.update();
                 BatteryChart.update();
+
+                // Update lastUpdateTimestamp only after processing new data
+                lastUpdateTimestamp = new Date(newData[newData.length - 1].timestamp);
+                console.log("Updated last update timestamp:", lastUpdateTimestamp);
             } else {
-                console.error(data.error);
+                console.log("No new data to update.");
             }
-        })
-        .catch(error => console.error('Error fetching latest data:', error));
-    }
+        } else {
+            console.error(data.error);
+        }
+    })
+    .catch(error => console.error('Error fetching latest data:', error));
+}
 
-    // Set an interval to automatically fetch data every 5 seconds (5000 ms)
-    setInterval(fetchLatestData, 5000);
+// Set an interval to automatically fetch data every 5 seconds (5000 ms)
+setInterval(fetchLatestData, 5000);
 
-    // Fetch the data immediately when the page loads
-    document.addEventListener('DOMContentLoaded', fetchLatestData);
+// Fetch the data immediately when the page loads
+document.addEventListener('DOMContentLoaded', fetchLatestData);
+
 </script>
-
-
 
 {% endblock %}
