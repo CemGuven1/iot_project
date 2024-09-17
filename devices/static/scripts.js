@@ -268,9 +268,9 @@ document.getElementById('toggleAccelChart').addEventListener('click', function()
     const chartContainer = document.getElementById(chartContainerId);
 
     if (chartContainer.style.display === 'none') {
-        this.innerHTML = '<i class="fas fa-chart-line"></i> Show Acceleration Chart';
+        this.innerHTML = '<i class="fas fa-tachometer-alt"></i> Show Acceleration Chart';
     } else {
-        this.innerHTML = '<i class="fas fa-chart-line"></i> Hide Acceleration Chart';
+        this.innerHTML = '<i class="fas fa-tachometer-alt"></i> Hide Acceleration Chart';
     }
 });
 
@@ -282,9 +282,9 @@ document.getElementById('toggleGyroChart').addEventListener('click', function() 
     const chartContainer = document.getElementById(chartContainerId);
 
     if (chartContainer.style.display === 'none') {
-        this.innerHTML = '<i class="fas fa-tachometer-alt"></i> Show Gyro Chart';
+        this.innerHTML = '<i class="fas fa-chart-line"></i> Show Gyro Chart';
     } else {
-        this.innerHTML = '<i class="fas fa-tachometer-alt"></i> Hide Gyro Chart';
+        this.innerHTML = '<i class="fas fa-chart-line"></i> Hide Gyro Chart';
     }
 });
 

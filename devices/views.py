@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from .models import Device, DataEntry
 from django.contrib.auth.decorators import login_required
 from .models import Device, DataEntry
@@ -7,6 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.contrib.auth import login
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import logout
+from .forms import CustomUserCreationForm  # Import custom form
 
 @login_required
 def dashboard(request):
@@ -97,3 +102,26 @@ def fetch_latest_data(request, device_id):
 
     except Device.DoesNotExist:
         return JsonResponse({'error': 'Device not found'}, status=404)
+    
+
+
+# Registration view
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+
+# Login view (optional if you use Django's built-in auth views, see below)
+def login_view(request):
+    return auth_views.LoginView.as_view(template_name='login.html', authentication_form=AuthenticationForm)(request)
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
