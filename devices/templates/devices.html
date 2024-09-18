@@ -2,6 +2,9 @@
 {% block content %}
 <body>
     <div class="container mt-4">
+
+        <a href="{% url 'register_device' %}" class="btn btn-success mb-3">Register New Device</a>
+
         <h2>Your Devices</h2>
         {% if page_obj.object_list %}
             <div class="table-responsive">
@@ -14,7 +17,7 @@
                             <th>Gyro (x, y, z)</th>
                             <th>Temperature (°C)</th>
                             <th>Battery (%)</th>
-                            <th>Timestamp</th>
+                            <th>Last Update</th>
                         </tr>
                     </thead>
                     <tbody>

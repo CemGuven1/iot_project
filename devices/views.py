@@ -12,7 +12,9 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
 from .forms import CustomUserCreationForm  # Import custom form
+from .forms import DeviceForm  # We'll create this form
 
+ 
 @login_required
 def dashboard(request):
     user = request.user  # Use the User model instead of Customer
@@ -125,3 +127,18 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+def register_device(request):
+    if request.method == 'POST':
+        form = DeviceForm(request.POST)
+        if form.is_valid():
+            device = form.save(commit=False)
+            device.user = request.user  # Set the user to the logged-in user
+            device.save()
+            return redirect('dashboard')  # Redirect back to dashboard after registration
+    else:
+        form = DeviceForm()
+
+    return render(request, 'register_device.html', {'form': form})

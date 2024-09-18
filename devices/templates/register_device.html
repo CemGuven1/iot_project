@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Register New Device</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <button type="submit" class="btn btn-primary mt-3">Register Device</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+
+
+<style>
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+</style>
+
+{% endblock %}
