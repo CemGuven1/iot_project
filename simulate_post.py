@@ -7,7 +7,7 @@ url = 'http://127.0.0.1:8000/api/data-entry/'
 # Sample data to be posted
 
 data = {
-    'device_id': '12345',
+    'device_id': '1234',
     'acceleration_x': 3,
     'acceleration_y': 4,
     'acceleration_z': 2,
@@ -19,7 +19,7 @@ data = {
 }
 
 data1 = {
-    'device_id': '12345',
+    'device_id': '1234',
     'acceleration_x': 6,
     'acceleration_y': 6,
     'acceleration_z': 6,

@@ -332,9 +332,4 @@ document.addEventListener("DOMContentLoaded", function() {
             panel.style.display = "block";
         }
     });
-
-    // Add any other JS code you moved from the HTML file here
-    // Initialize intervals, charts, etc.
-    setInterval(fetchLatestData, 5000);
-    fetchLatestData(); // Fetch data on page load
 });

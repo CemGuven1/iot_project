@@ -13,7 +13,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
 from .forms import CustomUserCreationForm  # Import custom form
 from .forms import DeviceForm  # We'll create this form
-
+from datetime import datetime
+from django.utils import timezone
+ 
  
 @login_required
 def dashboard(request):
@@ -91,19 +93,24 @@ def receive_data(request):
 @require_GET
 def fetch_latest_data(request, device_id):
     try:
-        # Get the latest DataEntry for the given device
         device = Device.objects.get(device_id=device_id, user=request.user)
-        all_data = DataEntry.objects.filter(device=device).order_by('-timestamp').values()
-
-        if all_data:
-            return JsonResponse({
-                'all_data': list(all_data)
-            })
+        last_timestamp = request.GET.get('lastUpdateTimestamp')
+        
+        # If no last timestamp is provided, return all data (for initialization)
+        if last_timestamp:
+            last_timestamp = datetime.strptime(last_timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
+            new_data = DataEntry.objects.filter(device=device, timestamp__gt=last_timestamp).order_by('timestamp').values()  #filter out already printed data
         else:
-            return JsonResponse({'error': 'No data found'}, status=404)
+            new_data = DataEntry.objects.filter(device=device).order_by('timestamp').values()  # Return all data if no timestamp
+
+        if new_data:
+            return JsonResponse({'new_data': list(new_data)})
+        else:
+            return JsonResponse({'error': 'No new data found'}, status=404)
 
     except Device.DoesNotExist:
         return JsonResponse({'error': 'Device not found'}, status=404)
+
     
 
 
