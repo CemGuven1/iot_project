@@ -44,14 +44,7 @@ def dashboard(request):
 def device_detail(request, device_id):
     user = request.user  # Use the User model instead of Customer
     device = Device.objects.get(device_id=device_id, user=user)  # Ensure it's the user's device
-    data_entries = DataEntry.objects.filter(device=device).order_by('-timestamp')
-
-    # Paginate data entries
-    paginator = Paginator(data_entries, 10)  # Show 10 data entries per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    return render(request, 'device_chart.html', {'device': device, 'page_obj': page_obj})
+    return render(request, 'device_chart.html', {'device': device})
 
 
 
@@ -106,7 +99,7 @@ def fetch_latest_data(request, device_id):
         if new_data:
             return JsonResponse({'new_data': list(new_data)})
         else:
-            return JsonResponse({'error': 'No new data found'}, status=404)
+            return JsonResponse({'message': 'No new data to update'}, status=200)  # Change 404 to 200
 
     except Device.DoesNotExist:
         return JsonResponse({'error': 'Device not found'}, status=404)

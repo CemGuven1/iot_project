@@ -2,8 +2,8 @@
 {% load static %}
 {% block content %}
 
+<!-- Include Chart Js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
 <!-- Include Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -93,58 +93,58 @@ function fetchLatestData() {
         data.lastUpdateTimestamp = lastUpdateTimestamp.toISOString();
     }
 
-    // Use jQuery's AJAX method
+    // Use jQuery's AJAX method to fetch the data
     $.ajax({
         url: url,
         method: 'GET',
         data: data,
         success: function(data) {
-            if (!data.error) {
+            if (data.new_data) {  // Check for new_data presence
                 const newData = data.new_data;
 
-                if (newData.length > 0) {
-                    // Add the new data to the charts
-                    newData.forEach(entry => {
-                        AccelChart.data.labels.push(formatTimestamp(entry.timestamp));
-                        AccelChart.data.datasets[0].data.push(entry.acceleration_x);
-                        AccelChart.data.datasets[1].data.push(entry.acceleration_y);
-                        AccelChart.data.datasets[2].data.push(entry.acceleration_z);
+                // Add the new data to the charts
+                newData.forEach(entry => {
+                    AccelChart.data.labels.push(formatTimestamp(entry.timestamp));
+                    AccelChart.data.datasets[0].data.push(entry.acceleration_x);
+                    AccelChart.data.datasets[1].data.push(entry.acceleration_y);
+                    AccelChart.data.datasets[2].data.push(entry.acceleration_z);
 
-                        GyroChart.data.labels.push(formatTimestamp(entry.timestamp));
-                        GyroChart.data.datasets[0].data.push(entry.gyro_x);
-                        GyroChart.data.datasets[1].data.push(entry.gyro_y);
-                        GyroChart.data.datasets[2].data.push(entry.gyro_z);
+                    GyroChart.data.labels.push(formatTimestamp(entry.timestamp));
+                    GyroChart.data.datasets[0].data.push(entry.gyro_x);
+                    GyroChart.data.datasets[1].data.push(entry.gyro_y);
+                    GyroChart.data.datasets[2].data.push(entry.gyro_z);
 
-                        TempChart.data.labels.push(formatTimestamp(entry.timestamp));
-                        TempChart.data.datasets[0].data.push(entry.temperature);
+                    TempChart.data.labels.push(formatTimestamp(entry.timestamp));
+                    TempChart.data.datasets[0].data.push(entry.temperature);
 
-                        BatteryChart.data.labels.push(formatTimestamp(entry.timestamp));
-                        BatteryChart.data.datasets[0].data.push(entry.battery);
-                    });
+                    BatteryChart.data.labels.push(formatTimestamp(entry.timestamp));
+                    BatteryChart.data.datasets[0].data.push(entry.battery);
+                });
 
-                    // Limit data points to the last 20
-                    limitChartData(AccelChart);
-                    limitChartData(GyroChart);
-                    limitChartData(TempChart);
-                    limitChartData(BatteryChart);
+                // Limit data points to the last 20
+                limitChartData(AccelChart);
+                limitChartData(GyroChart);
+                limitChartData(TempChart);
+                limitChartData(BatteryChart);
 
-                    // Update the charts
-                    AccelChart.update();
-                    GyroChart.update();
-                    TempChart.update();
-                    BatteryChart.update();
+                // Update the charts
+                AccelChart.update();
+                GyroChart.update();
+                TempChart.update();
+                BatteryChart.update();
 
-                    // Set the new timestamp for the last entry
-                    lastUpdateTimestamp = new Date(newData[newData.length - 1].timestamp);
-                } else {
-                    console.log("No new data to update.");
-                }
+                // Set the new timestamp for the last entry
+                lastUpdateTimestamp = new Date(newData[newData.length - 1].timestamp);
+                console.log("New data added!");  // Log the message about no new data
+
+            } else if (data.message) {      // Handle the case with no new data
+                console.log(data.message);  // Log the message about no new data
             } else {
                 console.error(data.error);
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error fetching latest data:', error);
+            console.log('Error:', xhr.responseText, status, error);
         }
     });
 }
