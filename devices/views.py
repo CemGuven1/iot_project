@@ -1,5 +1,5 @@
-from django.shortcuts import redirect, render
-from .models import Device, DataEntry
+from django.shortcuts import redirect, render, get_object_or_404
+from .models import Device, DataEntry, Project
 from django.contrib.auth.decorators import login_required
 from .models import Device, DataEntry
 from django.core.paginator import Paginator
@@ -14,13 +14,14 @@ from django.contrib.auth import logout
 from .forms import CustomUserCreationForm  # Import custom form
 from .forms import DeviceForm  # We'll create this form
 from datetime import datetime
-from django.utils import timezone
+from .forms import ProjectForm
  
  
 @login_required
-def dashboard(request):
-    user = request.user  # Use the User model instead of Customer
-    devices = Device.objects.filter(user=user)  # Now filter devices by user
+def dashboard(request, project_id):
+
+    project = Project.objects.get(id=project_id, user=request.user)     # Fetch the selected project
+    devices = project.devices.all()     # Fetch devices related to the project
 
     # For each device, get the latest data entry
     devices_with_data = []
@@ -36,7 +37,7 @@ def dashboard(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'devices.html', {'page_obj': page_obj})
+    return render(request, 'devices.html', {'page_obj': page_obj, 'project': project})
 
 
 
@@ -44,7 +45,32 @@ def dashboard(request):
 def device_detail(request, device_id):
     user = request.user  # Use the User model instead of Customer
     device = Device.objects.get(device_id=device_id, user=user)  # Ensure it's the user's device
-    return render(request, 'device_chart.html', {'device': device})
+    project = device.project  # Access the project associated with the device
+    
+    return render(request, 'device_chart.html', {'device': device, 'project':project})
+
+
+
+@login_required
+def project_list(request):
+    # Fetch all projects associated with the current user
+    projects = Project.objects.filter(user=request.user)
+    return render(request, 'project_list.html', {'projects': projects})
+
+
+@login_required
+def create_project(request):
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.user = request.user  # Associate the project with the logged-in user
+            project.save()
+            return redirect('project-list')  # Redirect to the project list after creation
+    else:
+        form = ProjectForm()
+
+    return render(request, 'create_project.html', {'form': form})
 
 
 
@@ -53,7 +79,9 @@ def receive_data(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            packetID = data.get('packetID', 0.0)
             device_id = data.get('device_id')
+            timestamp = data.get('timestamp')
             acceleration_x = data.get('acceleration_x', 0.0)
             acceleration_y = data.get('acceleration_y', 0.0)
             acceleration_z = data.get('acceleration_z', 0.0)
@@ -67,6 +95,7 @@ def receive_data(request):
             device = Device.objects.get(device_id=device_id)
             # Create a new data entry
             DataEntry.objects.create(
+                packetID = packetID,
                 device=device,
                 acceleration_x=acceleration_x,
                 acceleration_y=acceleration_y,
@@ -130,15 +159,22 @@ def logout_view(request):
 
 
 @login_required
-def register_device(request):
+def register_device(request, project_id):
+    # Get the project associated with the ID
+    project = get_object_or_404(Project, id=project_id, user=request.user)
+    
     if request.method == 'POST':
         form = DeviceForm(request.POST)
         if form.is_valid():
             device = form.save(commit=False)
             device.user = request.user  # Set the user to the logged-in user
+            device.project = project    # Associate the device with the selected project
             device.save()
-            return redirect('dashboard')  # Redirect back to dashboard after registration
+            # Redirect back to the devices dashboard for the specific project
+            return redirect('dashboard', project_id=project.id)  
     else:
         form = DeviceForm()
 
-    return render(request, 'register_device.html', {'form': form})
+    return render(request, 'register_device.html', {'form': form, 'project': project})
+
+

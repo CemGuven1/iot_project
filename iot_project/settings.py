@@ -136,7 +136,7 @@ REST_FRAMEWORK = {
 }
 
 # Redirect users after login
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'project-list'
 
 # Redirect users after logout
 LOGOUT_REDIRECT_URL = 'login'

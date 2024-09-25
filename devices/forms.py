@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Device
+from .models import Device, Project  # Assuming you have a Project model
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -27,4 +27,13 @@ class DeviceForm(forms.ModelForm):
         widgets = {
             'device_id': forms.TextInput(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+        
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['name', 'description']  # Add any other fields you need
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }

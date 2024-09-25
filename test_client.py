@@ -1,6 +1,7 @@
 import socket
 import json
 import time
+from datetime import datetime
 
 def send_data_to_server(data):
     """Send data to the TCP server."""
@@ -20,7 +21,8 @@ if __name__ == "__main__":
     # Simulate sending device data every few seconds
     for i in range(10):
         simulated_data = {
-            'device_id': '1234',
+            'packetID': '12345678',
+            'device_id': '123123123',
             'acceleration_x': i * 0.1,
             'acceleration_y': i * 0.2,
             'acceleration_z': i * 0.3,

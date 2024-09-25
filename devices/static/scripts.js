@@ -200,7 +200,7 @@ function formatTimestamp(timestamp) {
                 },
                 title: {
                     display: true,
-                    text: 'Device Temperature Over Time'
+                    text: 'Device Battery Over Time'
                 }
             }
         }

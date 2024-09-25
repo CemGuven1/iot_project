@@ -2,8 +2,16 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 
+class Project(models.Model):
+    user = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)  # Optional description
+
+    def __str__(self):
+        return f"Project {self.name} by {self.user.username}"
 
 class Device(models.Model):
+    project = models.ForeignKey(Project, related_name='devices', on_delete=models.CASCADE, default=1)
     user = models.ForeignKey(User, related_name='devices', on_delete=models.CASCADE, default = 1)
     device_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100, null=True, blank=True)  # Optional name for device
@@ -20,6 +28,7 @@ class MillisecondDateTimeField(models.DateTimeField):
     
 
 class DataEntry(models.Model):
+    packetID = models.CharField(default=0.0) 
     device = models.ForeignKey(Device, related_name='data_entries', on_delete=models.CASCADE)
     timestamp = MillisecondDateTimeField(auto_now_add=True)
     
