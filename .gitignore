@@ -1,0 +1,21 @@
+# Ignore virtual environments
+venv/
+
+# Ignore Python bytecode files
+__pycache__/
+*.py[cod]
+
+# Ignore Django secret key or environment files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore macOS-specific files
+.DS_Store
+
+# Ignore Windows thumbnail cache
+Thumbs.db
+
+# Ignore node_modules folder
+node_modules/
