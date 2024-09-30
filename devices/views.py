@@ -81,7 +81,13 @@ def receive_data(request):
             data = json.loads(request.body)
             packetID = data.get('packetID', 0.0)
             device_id = data.get('device_id')
-            timestamp = data.get('timestamp')
+            
+            unix_time = data.get('unix_time')  # Get Unix timestamp
+            millisecond = data.get('millisecond')  # Get milliseconds
+            
+            # Convert Unix time and milliseconds to a datetime object
+            timestamp = datetime.fromtimestamp(unix_time + millisecond / 1000.0)
+            
             acceleration_x = data.get('acceleration_x', 0.0)
             acceleration_y = data.get('acceleration_y', 0.0)
             acceleration_z = data.get('acceleration_z', 0.0)
@@ -97,6 +103,7 @@ def receive_data(request):
             DataEntry.objects.create(
                 packetID = packetID,
                 device=device,
+                timestamp=timestamp,
                 acceleration_x=acceleration_x,
                 acceleration_y=acceleration_y,
                 acceleration_z=acceleration_z,

@@ -1,8 +1,8 @@
 import socket
+import struct
 import requests
 import json
-import struct
-import datetime
+import time
 
 # Django API endpoint (replace with your actual endpoint)
 API_URL = 'http://localhost:8000/api/data-entry/'  # Change this URL
@@ -13,17 +13,39 @@ def post_to_django(data):
     
     try:
         response = requests.post(API_URL, data=json.dumps(data), headers=headers)
-        if response.status_code == 201:
+        if response.status_code == 200:
             print("Data successfully posted to Django.")
         else:
             print(f"Failed to post data: {response.status_code}, {response.text}")
     except Exception as e:
         print(f"Error sending data to Django: {e}")
 
+def parse_device_data(binary_data):
+    """Parse the 54-byte binary data received from the client."""
+    format_str = '<H I I H B i i i h h h h h h h h 6h B'  # Little-endian format
+    unpacked_data = struct.unpack(format_str, binary_data)
+
+    # Create a dictionary with parsed values
+    parsed_data = {
+        'device_id': unpacked_data[0],
+        'packetID': unpacked_data[1],
+        'unix_time': unpacked_data[2],
+        'millisecond': unpacked_data[3],
+        'acceleration_x': unpacked_data[5],  # ADXL AccX
+        'acceleration_y': unpacked_data[6],  # ADXL AccY
+        'acceleration_z': unpacked_data[7],  # ADXL AccZ
+        'gyro_x': unpacked_data[12],         # LSM6 GyroX
+        'gyro_y': unpacked_data[13],         # LSM6 GyroY
+        'gyro_z': unpacked_data[14],         # LSM6 GyroZ
+        'temperature': unpacked_data[8],     # ADXL Temp
+        'battery': 100
+    }
+    return parsed_data
 
 def start_tcp_server():
     """Start the TCP server to receive data from IoT clients."""
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Reuse the port if needed
     server_socket.bind(('0.0.0.0', 65432))  # Bind to all interfaces on port 65432
     server_socket.listen(5)
     
@@ -33,87 +55,36 @@ def start_tcp_server():
         client_socket, addr = server_socket.accept()
         print(f"Connection from {addr}")
         
-        # Receive data from the client
-        
-        ###data = client_socket.recv(1024).decode('utf-8')
-        ###print(f"Received data: {data}")
-        
-        # Receive 54 bytes of hex data
-        data = client_socket.recv(54)
-        if not data:
-            break
-        
-        # Parse the received data
-        simulated_data = parse_received_data(data)
-        print("Simulated Data:", json.dumps(simulated_data, indent=2))
-        
-        
-        # Assuming data is JSON encoded from the IoT device
         try:
-            parsed_data = json.loads(data)
-            print(f"Parsed data: {parsed_data}")
-            ##post_to_django(parsed_data)
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse data: {e}")
+            while True:  # Keep receiving data from the client
+                # Receive 54 bytes of binary data from the client
+                data = client_socket.recv(54)
+                
+                if len(data) == 54:
+                    print(f"Received {len(data)} bytes of data.")
+                    
+                    try:
+                        # Parse the binary data
+                        parsed_data = parse_device_data(data)
+                        print(f"Parsed data: {parsed_data}")
+                        
+                        # Post parsed data to Django
+                        post_to_django(parsed_data)
+                        
+                    except struct.error as e:
+                        print(f"Error unpacking data: {e}")
+                elif len(data) == 0:
+                    # No more data, client likely closed the connection
+                    print("Client closed the connection.")
+                    break
+                else:
+                    print(f"Received incomplete data: {len(data)} bytes")
+        
+        except Exception as e:
+            print(f"Error during client communication: {e}")
         
         client_socket.close()
-
-
-
-
-def parse_received_data(data):
-    # Ensure the data is exactly 54 bytes
-    if len(data) != 54:
-        raise ValueError("Received data must be exactly 54 bytes.")
-
-    # Unpack the data based on the expected structure
-    # Assuming you received: Opcode, DeviceId, PacketId, UnixTime, Millisecond, SensorInfo, AccX, AccY, AccZ, Temp, etc.
-
-    # Example unpacking based on the structure you provided
-    Opcode = data[0]
-    DeviceId = struct.unpack('<H', data[1:3])[0]  # 2 bytes
-    PacketId = struct.unpack('<I', data[3:7])[0]  # 4 
-    
-    
-    UnixTime = struct.unpack('<I', data[7:11])[0]  # 4 bytes
-    # Convert to datetime
-    dt = datetime.datetime.fromtimestamp(UnixTime)
-    Millisecond = struct.unpack('<H', data[11:13])[0]  # 2 bytes
-    # Add milliseconds using timedelta
-    dt_with_ms = dt + datetime.timedelta(milliseconds=Millisecond)
-
-
-    SensorInfo = data[13]
-    
-    # Assuming AccX, AccY, AccZ data format as specified (example)
-    AccX = [data[14], data[15], data[16]]  # 3 bytes
-    AccY = [data[17], data[18], data[19]]  # 3 bytes
-    AccZ = [data[20], data[21], data[22]]  # 3 bytes
-    Temp = data[23:25]  # 2 bytes for temperature
-    # Additional fields can be extracted similarly...
-
-    # Example: convert AccX, AccY, AccZ to float values (you'll need actual conversion logic)
-    accel_x = sum(AccX) / 3.0  # Placeholder logic
-    accel_y = sum(AccY) / 3.0  # Placeholder logic
-    accel_z = sum(AccZ) / 3.0  # Placeholder logic
-
-    # Create the simulated data dictionary
-    simulated_data = {
-        'device_id': DeviceId,
-        "timestamp": dt_with_ms,
-        "temperature": struct.unpack('<H', Temp)[0],
-        "accel_x": accel_x,
-        "accel_y": accel_y,
-        "accel_z": accel_z,
-        "gyro_x": 0.01,  # Replace with actual gyro calculation
-        "gyro_y": 0.02,  # Replace with actual gyro calculation
-        "gyro_z": 0.03,  # Replace with actual gyro calculation
-        "battery": 100 - (PacketId % 100)
-    }
-
-    return simulated_data
-
-
+        print(f"Connection with {addr} closed.")
 
 if __name__ == "__main__":
     start_tcp_server()

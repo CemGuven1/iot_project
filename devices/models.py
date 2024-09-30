@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta
+from datetime import timedelta
+from django.utils import timezone
 
 class Project(models.Model):
     user = models.ForeignKey(User, related_name='projects', on_delete=models.CASCADE)
@@ -15,7 +16,7 @@ class Device(models.Model):
     user = models.ForeignKey(User, related_name='devices', on_delete=models.CASCADE, default = 1)
     device_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100, null=True, blank=True)  # Optional name for device
-
+    
     def __str__(self):
         return f"Device {self.device_id} owned by {self.user.username}"
 
@@ -30,7 +31,7 @@ class MillisecondDateTimeField(models.DateTimeField):
 class DataEntry(models.Model):
     packetID = models.CharField(default=0.0) 
     device = models.ForeignKey(Device, related_name='data_entries', on_delete=models.CASCADE)
-    timestamp = MillisecondDateTimeField(auto_now_add=True)
+    timestamp = MillisecondDateTimeField(default=timezone.now)
     
     # Acceleration Data (x, y, z)
     acceleration_x = models.FloatField(default=0.0)
