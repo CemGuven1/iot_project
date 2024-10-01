@@ -78,45 +78,55 @@ def create_project(request):
 def receive_data(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            packetID = data.get('packetID', 0.0)
-            device_id = data.get('device_id')
-            
-            unix_time = data.get('unix_time')  # Get Unix timestamp
-            millisecond = data.get('millisecond')  # Get milliseconds
-            
-            # Convert Unix time and milliseconds to a datetime object
-            timestamp = datetime.fromtimestamp(unix_time + millisecond / 1000.0)
-            
-            acceleration_x = data.get('acceleration_x', 0.0)
-            acceleration_y = data.get('acceleration_y', 0.0)
-            acceleration_z = data.get('acceleration_z', 0.0)
-            gyro_x = data.get('gyro_x', 0.0)
-            gyro_y = data.get('gyro_y', 0.0)
-            gyro_z = data.get('gyro_z', 0.0)
-            temperature = data.get('temperature', 0.0)
-            battery = data.get('battery', 100.0)
+            # Expecting a list of entries
+            data_entries = json.loads(request.body)  # This should be a list of dictionaries
+            data_objects = []  # List to hold DataEntry objects for bulk creation
 
-            # Find the device
-            device = Device.objects.get(device_id=device_id)
-            # Create a new data entry
-            DataEntry.objects.create(
-                packetID = packetID,
-                device=device,
-                timestamp=timestamp,
-                acceleration_x=acceleration_x,
-                acceleration_y=acceleration_y,
-                acceleration_z=acceleration_z,
-                gyro_x=gyro_x,
-                gyro_y=gyro_y,
-                gyro_z=gyro_z,
-                temperature=temperature,
-                battery=battery
-            )
+            for data in data_entries:  # Loop through each entry
+                packetID = data.get('packetID', 0.0)
+                device_id = data.get('device_id')
+
+                unix_time = data.get('unix_time')  # Get Unix timestamp
+                millisecond = data.get('millisecond')  # Get milliseconds
+
+                # Convert Unix time and milliseconds to a datetime object
+                timestamp = datetime.fromtimestamp(unix_time + millisecond / 1000.0)
+
+                acceleration_x = data.get('acceleration_x', 0.0)
+                acceleration_y = data.get('acceleration_y', 0.0)
+                acceleration_z = data.get('acceleration_z', 0.0)
+                gyro_x = data.get('gyro_x', 0.0)
+                gyro_y = data.get('gyro_y', 0.0)
+                gyro_z = data.get('gyro_z', 0.0)
+                temperature = data.get('temperature', 0.0)
+                battery = data.get('battery', 100.0)
+
+                # Find the device
+                device = Device.objects.get(device_id=device_id)
+                
+                # Create a new DataEntry object
+                data_objects.append(DataEntry(
+                    packetID=packetID,
+                    device=device,
+                    timestamp=timestamp,
+                    acceleration_x=acceleration_x,
+                    acceleration_y=acceleration_y,
+                    acceleration_z=acceleration_z,
+                    gyro_x=gyro_x,
+                    gyro_y=gyro_y,
+                    gyro_z=gyro_z,
+                    temperature=temperature,
+                    battery=battery
+                ))
+
+            # Bulk create DataEntry objects in the database
+            DataEntry.objects.bulk_create(data_objects)
+
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
 
 
 @require_GET

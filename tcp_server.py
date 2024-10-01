@@ -7,18 +7,23 @@ import time
 # Django API endpoint (replace with your actual endpoint)
 API_URL = 'http://localhost:8000/api/data-entry/'  # Change this URL
 
-def post_to_django(data):
-    """Send the parsed data to the Django app via a POST request."""
+BATCH_SIZE = 100  # Number of entries to send in one batch
+data_batch = []
+
+
+def post_to_django_batch(batch):
+    """Send a batch of parsed data to the Django app via a POST request."""
     headers = {'Content-Type': 'application/json'}
-    
     try:
-        response = requests.post(API_URL, data=json.dumps(data), headers=headers)
+        response = requests.post(API_URL, data=json.dumps(batch), headers=headers)
         if response.status_code == 200:
-            print("Data successfully posted to Django.")
+            print("Batch data successfully posted to Django.")
         else:
-            print(f"Failed to post data: {response.status_code}, {response.text}")
+            print(f"Failed to post batch data: {response.status_code}, {response.text}")
     except Exception as e:
-        print(f"Error sending data to Django: {e}")
+        print(f"Error sending batch data to Django: {e}")
+
+
 
 def parse_device_data(binary_data):
     """Parse the 54-byte binary data received from the client."""
@@ -41,6 +46,7 @@ def parse_device_data(binary_data):
         'battery': 100
     }
     return parsed_data
+
 
 def start_tcp_server():
     """Start the TCP server to receive data from IoT clients."""
@@ -68,8 +74,13 @@ def start_tcp_server():
                         parsed_data = parse_device_data(data)
                         print(f"Parsed data: {parsed_data}")
                         
-                        # Post parsed data to Django
-                        post_to_django(parsed_data)
+                        # Add parsed data to the batch
+                        data_batch.append(parsed_data)
+                        
+                        # Check if we have enough data to send
+                        if len(data_batch) >= BATCH_SIZE:
+                            post_to_django_batch(data_batch)  # Post the batch
+                            data_batch.clear()  # Clear the batch after posting
                         
                     except struct.error as e:
                         print(f"Error unpacking data: {e}")
