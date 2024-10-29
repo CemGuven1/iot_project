@@ -22,6 +22,16 @@
   
                 <form method="POST" action="{% url 'login' %}">
                   {% csrf_token %}
+
+                  <!-- Display error messages -->
+                  {% if form.non_field_errors %}
+                  <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+
                   <!-- Username field -->
                   <div data-mdb-input-init class="form-outline form-white mb-4">
                     {{ form.username|add_class:"form-control form-control-lg" }}

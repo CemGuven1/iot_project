@@ -1,45 +1,76 @@
-{% extends "master.html" %}
-{% block content %}
+{% load form_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
 <section class="vh-100 gradient-custom">
   <div class="container py-5 h-100">
     <div class="row d-flex justify-content-center align-items-center h-100">
       <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-        <div class="card bg-dark text-white" style="border-radius: 1rem; height: 750px;">
+        <div class="card bg-dark text-white" style="border-radius: 1rem; min-height: 750px;">
           <div class="card-body p-5 text-center">
             <div class="mb-md-5 mt-md-4 pb-5">
+
               <h2 class="fw-bold mb-2 text-uppercase">Register</h2>
               <p class="text-white-50 mb-5">Please enter your details to register!</p>
 
               <form method="post">
                 {% csrf_token %}
+                
+                <!-- General form errors -->
                 {{ form.non_field_errors }}
+
+                <!-- Username field -->
                 <div class="form-outline form-white mb-4">
-                  {{ form.username.errors }}
+                  <!-- Error messages for username -->
+                  <div class="text-danger">
+                    {{ form.username.errors }}
+                  </div>
                   <input type="text" id="typeUsername" name="username" class="form-control form-control-lg" placeholder="Username">
                   <label class="form-label" for="typeUsername">Username</label>
                 </div>
                 
+                <!-- Email field -->
                 <div class="form-outline form-white mb-4">
-                  {{ form.email.errors }}
+                  <!-- Error messages for email -->
+                  <div class="text-danger">
+                    {{ form.email.errors }}
+                  </div>
                   <input type="email" id="typeEmail" name="email" class="form-control form-control-lg" placeholder="Email">
                   <label class="form-label" for="typeEmail">Email</label>
                 </div>
 
+                <!-- Password field -->
                 <div class="form-outline form-white mb-4">
-                  {{ form.password1.errors }}
+                  <!-- Error messages for password1 -->
+                  <div class="text-danger">
+                    {{ form.password1.errors }}
+                  </div>
                   <input type="password" id="typePassword1" name="password1" class="form-control form-control-lg" placeholder="Password">
                   <label class="form-label" for="typePassword1">Password</label>
                 </div>
 
+                <!-- Confirm Password field -->
                 <div class="form-outline form-white mb-4">
-                  {{ form.password2.errors }}
+                  <!-- Error messages for password2 -->
+                  <div class="text-danger">
+                    {{ form.password2.errors }}
+                  </div>
                   <input type="password" id="typePassword2" name="password2" class="form-control form-control-lg" placeholder="Confirm Password">
                   <label class="form-label" for="typePassword2">Confirm Password</label>
                 </div>
 
+                <!-- Submit button -->
                 <button class="btn btn-outline-light btn-lg px-5" type="submit">Register</button>
               </form>
 
+              <!-- Already have an account -->
               <div class="d-flex justify-content-center text-center mt-4 pt-1">
                 <a href="{% url 'login' %}" class="text-white">Already have an account? Log In</a>
               </div>
@@ -51,6 +82,37 @@
     </div>
   </div>
 </section>
+</html>
+
+<style>
+.gradient-custom {
+  /* fallback for old browsers */
+  background: #6a11cb;
+
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+}
+
+.card {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.text-danger {
+  font-size: 0.9rem;
+  overflow-wrap: break-word; /* Ensure long error messages break onto new lines */
+}
+
+.alert {
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+</style>
+
 
 <style>
     .gradient-custom {
@@ -71,4 +133,3 @@
         
 </style>
 
-{% endblock %}

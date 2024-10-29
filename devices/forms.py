@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Device, Project  # Assuming you have a Project model
+from django.core.exceptions import ValidationError
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -25,9 +26,17 @@ class DeviceForm(forms.ModelForm):
         model = Device
         fields = ['device_id', 'name']  # Add any other necessary fields
         widgets = {
-            'device_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'device_id': forms.TextInput(attrs={'class': 'form-control', 'type': 'text'}),  # Ensure type is text
             'name': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def clean_device_id(self):
+        device_id = self.cleaned_data['device_id']
+        if not device_id.isdigit():  # Check if the device_id consists of only digits
+            raise ValidationError("Device ID must be numeric.")
+        return device_id
+    
+    
         
 class ProjectForm(forms.ModelForm):
     class Meta:

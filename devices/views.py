@@ -15,7 +15,8 @@ from .forms import CustomUserCreationForm  # Import custom form
 from .forms import DeviceForm  # We'll create this form
 from datetime import datetime
 from .forms import ProjectForm
- 
+from django.http import HttpResponse
+from django.urls import reverse
  
 @login_required
 def dashboard(request, project_id):
@@ -195,3 +196,50 @@ def register_device(request, project_id):
     return render(request, 'register_device.html', {'form': form, 'project': project})
 
 
+@login_required
+def device_delete(request, device_id):
+    device = get_object_or_404(Device, device_id=device_id)
+    project_id = device.project.id  # Assuming Device has a ForeignKey to Project
+    
+    if request.method == 'POST':
+        device.delete()
+        return HttpResponse(f"<script>alert('Device deleted successfully.'); window.location.href='{reverse('dashboard', args=[project_id])}';</script>")
+
+    return redirect('device-list')  # Fallback in case it's not a POST request
+
+
+
+@login_required
+def project_delete(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == 'POST':
+        project.delete()
+        return HttpResponse(f"<script>alert('Project deleted successfully.'); window.location.href='{reverse('project-list')}';</script>")
+
+    return redirect('project-list')  # Fallback in case it's not a POST request
+
+
+
+
+def fetch_latest_device_data(request, project_id):
+    project = Project.objects.get(id=project_id, user=request.user)  # Fetch the selected project
+    devices = project.devices.all()  # Fetch devices related to the project
+
+    devices_with_data = []
+    for device in devices:
+        latest_data = DataEntry.objects.filter(device=device).order_by('-timestamp').first()
+        if latest_data:
+            devices_with_data.append({
+                'device_id': device.device_id,
+                'acceleration_x': latest_data.acceleration_x,
+                'acceleration_y': latest_data.acceleration_y,
+                'acceleration_z': latest_data.acceleration_z,
+                'gyro_x': latest_data.gyro_x,
+                'gyro_y': latest_data.gyro_y,
+                'gyro_z': latest_data.gyro_z,
+                'temperature': latest_data.temperature,
+                'battery': latest_data.battery,
+                'timestamp': latest_data.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            })
+    return JsonResponse(devices_with_data, safe=False)

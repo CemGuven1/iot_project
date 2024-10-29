@@ -81,3 +81,55 @@
 }
 
 
+/* FORM STYLING */
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+
+/* TABLE STYLING */
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.clickable-row:hover {
+    background-color: #302b3a !important; /* Darker hover effect */
+    color: white;
+}
+
+/* Table styling with shadow on all sides */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #d7d7d7;
+    /* Updated box shadow for all sides */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* More shadow for a 3D effect */
+}
+
+.table thead {
+    background-color: #2174cc; /* Blue header background */
+    color: #ffffff; /* White text for headers */
+    text-transform: uppercase;
+}
+
+.table th {
+    font-weight: bold;
+    padding: 15px;
+    text-align: center;
+    border: none; /* Remove borders from header */
+}
+
+.table td {
+    padding: 12px;
+    text-align: center;
+}
+
+/* Add more emphasis to the header */
+.thead-dark th {
+    border-bottom: 3px solid transparent; /* Remove any remaining borders */
+}
+
+

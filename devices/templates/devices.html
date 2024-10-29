@@ -1,76 +1,120 @@
 {% extends "master.html" %}
+{% load static %}
 {% block content %}
-<body>
-    <div class="container mt-4">
 
-        <a href="{% url 'register_device' project.id%}" class="btn btn-success mb-3">Register New Device</a>
-        <a href="{% url 'project-list' %}" class="btn btn-secondary mb-3">Return to Project List</a>
+<div class="container mt-4">
+    <a href="{% url 'register_device' project.id %}" class="btn btn-success mb-3">Register New Device</a>
+    <a href="{% url 'project-list' %}" class="btn btn-secondary mb-3">Return to Project List</a>
 
-        <h2>Your Devices</h2>
-        {% if page_obj.object_list %}
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Device ID</th>
-                            <th>Device Name</th>
-                            <th>Acceleration (x, y, z)</th>
-                            <th>Gyro (x, y, z)</th>
-                            <th>Temperature (°C)</th>
-                            <th>Battery (%)</th>
-                            <th>Last Update</th>
+    <h2 class="mb-4">Your Devices</h2>
+    {% if page_obj.object_list %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Device ID</th>
+                        <th>Device Name</th>
+                        <th>Acceleration (x, y, z)</th>
+                        <th>Gyro (x, y, z)</th>
+                        <th>Temperature (°C)</th>
+                        <th>Battery (%)</th>
+                        <th>Last Update</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in page_obj.object_list %}
+                        <tr class="clickable-row" data-href="{% url 'device-detail' item.device.device_id %}" data-device-id="{{ item.device.device_id }}">
+                            <td>{{ item.device.device_id }}</td>
+                            <td>{{ item.device.name }}</td>
+                            {% if item.latest_data %}
+                                <td class="acceleration">({{ item.latest_data.acceleration_x }}, {{ item.latest_data.acceleration_y }}, {{ item.latest_data.acceleration_z }})</td>
+                                <td class="gyro">({{ item.latest_data.gyro_x }}, {{ item.latest_data.gyro_y }}, {{ item.latest_data.gyro_z }})</td>
+                                <td class="temperature">{{ item.latest_data.temperature }}</td>
+                                <td class="battery">{{ item.latest_data.battery }}</td>
+                                <td class="last-update">{{ item.latest_data.timestamp }}</td>
+                            {% else %}
+                                <td class="acceleration">No data</td>
+                                <td class="gyro">No data</td>
+                                <td class="temperature">No data</td>
+                                <td class="battery">No data</td>
+                                <td class="last-update">No data</td>
+                            {% endif %}
+                            <td>
+                                <form method="POST" action="{% url 'device-delete' item.device.device_id %}" onsubmit="return confirm('Are you sure you want to delete this device?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in page_obj.object_list %}
-                            <tr class="clickable-row" data-href="{% url 'device-detail' item.device.device_id %}">
-                                <td>{{ item.device.device_id }}</td>
-                                <td>{{ item.device.name }}</td>
-                                {% if item.latest_data %}
-                                    <td>({{ item.latest_data.acceleration_x }}, {{ item.latest_data.acceleration_y }}, {{ item.latest_data.acceleration_z }})</td>
-                                    <td>({{ item.latest_data.gyro_x }}, {{ item.latest_data.gyro_y }}, {{ item.latest_data.gyro_z }})</td>
-                                    <td>{{ item.latest_data.temperature }}</td>
-                                    <td>{{ item.latest_data.battery }}</td>
-                                    <td>{{ item.latest_data.timestamp }}</td>
-                                {% else %}
-                                    <td colspan="6">No data available</td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p>You do not have any devices registered.</p>
-        {% endif %}
-    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>You do not have any devices registered.</p>
+    {% endif %}
+</div>
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // Make rows clickable
-        document.addEventListener('DOMContentLoaded', function () {
-            const rows = document.querySelectorAll('.clickable-row');
-            rows.forEach(row => {
-                row.addEventListener('click', function () {
-                    window.location.href = this.dataset.href;
-                });
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.clickable-row');
+        rows.forEach(row => {
+            row.addEventListener('click', function () {
+                window.location.href = this.dataset.href;
             });
         });
-    </script>
+
+        const deleteButtons = document.querySelectorAll('form button[type="submit"]');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    });
+</script>
+
+<script src="{% static 'scripts.js' %}"></script>
 
 
-    <!-- Add some CSS styles for hover effect and cursor -->
-    <style>
-        .clickable-row {
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        .clickable-row:hover {
-            background-color: #f0f0f0; /* Light shade on hover */
-        }
-    </style>
+<script>
+    
+    const projectId = "{{ project.id }}"; 
+    let url = `/app/fetch-latest-device-data/${projectId}`;
+
+    function fetchLatestData() {
+        $.ajax({
+            url: url,
+            method: "GET",
+            dataType: "json",  // Ensures the response is parsed as JSON
+            success: function(response) {
+                console.log(response);  // Inspect the structure of response
+
+                // Check if response is an array before calling forEach
+                if (Array.isArray(response)) {
+                    response.forEach(item => {
+                        const row = document.querySelector(`tr[data-device-id="${item.device_id}"]`);
+                        if (row) {
+                            // Update each field with the latest data for this device
+                            row.querySelector('.acceleration').textContent = `(${item.acceleration_x}, ${item.acceleration_y}, ${item.acceleration_z})`;
+                            row.querySelector('.gyro').textContent = `(${item.gyro_x}, ${item.gyro_y}, ${item.gyro_z})`;
+                            row.querySelector('.temperature').textContent = `${item.temperature}°C`;
+                            row.querySelector('.battery').textContent = `${item.battery}%`;
+                            row.querySelector('.last-update').textContent = formatTimestamp(item.timestamp);
+                        }
+                    });
+                } else {
+                    console.error("Unexpected response format:", response);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching data:", xhr.responseText);
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchLatestData);
+    setInterval(fetchLatestData, 5000);
+</script>
 
 {% endblock %}
